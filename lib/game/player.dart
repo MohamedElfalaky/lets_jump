@@ -133,6 +133,17 @@ class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame
       ]);
     
     canvas.saveLayer(headRect, filterPaint);
+    
+    // Calculate scaling to FULLY FILL the circular head (BoxFit.cover)
+    final spriteSize = animation?.frames.first.sprite.srcSize ?? Vector2(1, 1);
+    final scale = max(headRect.width / spriteSize.x, headRect.height / spriteSize.y);
+    
+    canvas.translate(
+      headCenter.dx - (spriteSize.x * scale / 2),
+      headCenter.dy - (spriteSize.y * scale / 2),
+    );
+    canvas.scale(scale);
+    
     // Render the sprite within the head circle
     super.render(canvas); 
     canvas.restore();

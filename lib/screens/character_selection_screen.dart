@@ -215,24 +215,26 @@ class _CharacterCard extends StatelessWidget {
 
   Widget _buildCharacterImage() {
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isSelected ? Colors.cyanAccent : Colors.white24,
-          width: 3,
-        ),
+        color: Colors.black.withOpacity(0.2),
+        // borderRadius: BorderRadius.circular(25),
+        // border: Border.all(
+        //   color: isSelected ? Colors.cyanAccent : Colors.white24,
+        //   width: 3,
+        // ),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 15),
         ],
+        shape: BoxShape.circle,
       ),
       child: Image.asset(
         'assets/images/${character.run1Path}',
-
-        fit: BoxFit.fill,
+        fit: BoxFit.contain, // FULLY EXPAND to fill the circle
         errorBuilder: (context, error, stackTrace) {
           return Image.asset(
             'assets/images/${character.run1JpgPath}',
-            fit: BoxFit.cover,
+            fit: BoxFit.cover, // FULLY EXPAND to fill the circle
             errorBuilder: (context, error, stackTrace) {
               return const Icon(Icons.person, size: 80, color: Colors.white24);
             },
