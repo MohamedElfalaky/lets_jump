@@ -170,6 +170,15 @@ class _CharacterCard extends StatelessWidget {
                         child: Image.asset(
                           'assets/images/${character.run1Path}',
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/${character.run1JpgPath}',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(child: Icon(Icons.person, size: 50, color: Colors.grey));
+                              },
+                            );
+                          },
                         ),
                       ),
                     ),
