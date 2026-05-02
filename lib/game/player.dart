@@ -74,10 +74,19 @@ class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame
     canvas.save();
     canvas.clipPath(path);
     
-    // Draw the actual character sprite/photo
-    super.render(canvas);
+    // Draw with a cartoon-like filter (vibrancy boost)
+    final filterPaint = Paint()
+      ..colorFilter = const ColorFilter.matrix([
+        1.2, 0, 0, 0, 5,   // Red
+        0, 1.2, 0, 0, 5,   // Green
+        0, 0, 1.2, 0, 5,   // Blue
+        0, 0, 0, 1.0, 0,   // Alpha
+      ]);
     
-    canvas.restore();
+    canvas.saveLayer(Rect.fromLTWH(0, 0, size.x, size.y), filterPaint);
+    super.render(canvas);
+    canvas.restore(); // Restore layer
+    canvas.restore(); // Restore clip
 
     // Add a nice white border around the circle
     final paint = Paint()

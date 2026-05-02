@@ -1,105 +1,102 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lets_jump/models/character.dart';
 import 'package:lets_jump/screens/game_screen.dart';
 
-class CharacterSelectionScreen extends StatelessWidget {
+class CharacterSelectionScreen extends StatefulWidget {
   const CharacterSelectionScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF81D4FA), Color(0xFFE1F5FE)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              _AnimatedHeader(),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Choose your player to start jumping!',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                  physics: const BouncingScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.85,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                  ),
-                  itemCount: Character.characters.length,
-                  itemBuilder: (context, index) {
-                    final char = Character.characters[index];
-                    return _CharacterCard(character: char, index: index);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  State<CharacterSelectionScreen> createState() => _CharacterSelectionScreenState();
 }
 
-class _AnimatedHeader extends StatefulWidget {
-  @override
-  State<_AnimatedHeader> createState() => _AnimatedHeaderState();
-}
-
-class _AnimatedHeaderState extends State<_AnimatedHeader> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+class _CharacterSelectionScreenState extends State<CharacterSelectionScreen> {
+  late PageController _pageController;
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: const Duration(seconds: 2), vsync: this)..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.95, end: 1.05).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _pageController = PageController(viewportFraction: 0.8);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _animation,
-      child: Text(
-        'Let\'s Jump!',
-        style: GoogleFonts.poppins(
-          fontSize: 48,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          shadows: [
-            const Shadow(blurRadius: 15, color: Colors.black38, offset: Offset(0, 5)),
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background Decorative Glows
+            Positioned(
+              top: -100,
+              right: -100,
+              child: _CircularGlow(color: Colors.cyanAccent.withOpacity(0.1), size: 400),
+            ),
+            Positioned(
+              bottom: -150,
+              left: -150,
+              child: _CircularGlow(color: Colors.blueAccent.withOpacity(0.15), size: 500),
+            ),
+            
+            SafeArea(
+              child: Column(
+                children: [
+                  SizedBox(height: isLandscape ? 10 : 30),
+                  _PremiumHeader(isLandscape: isLandscape),
+                  SizedBox(height: isLandscape ? 10 : 20),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) => setState(() => _currentPage = index),
+                      itemCount: Character.characters.length,
+                      itemBuilder: (context, index) {
+                        final character = Character.characters[index];
+                        final isSelected = _currentPage == index;
+                        return _CharacterCard(
+                          character: character,
+                          isSelected: isSelected,
+                          isLandscape: isLandscape,
+                          onTap: () => _startGame(character),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: isLandscape ? 10 : 20),
+                  _PageIndicator(
+                    count: Character.characters.length,
+                    current: _currentPage,
+                  ),
+                  SizedBox(height: isLandscape ? 10 : 30),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _startGame(Character character) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameScreen(character: character),
       ),
     );
   }
@@ -107,116 +104,261 @@ class _AnimatedHeaderState extends State<_AnimatedHeader> with SingleTickerProvi
 
 class _CharacterCard extends StatelessWidget {
   final Character character;
-  final int index;
+  final bool isSelected;
+  final bool isLandscape;
+  final VoidCallback onTap;
 
-  const _CharacterCard({required this.character, required this.index});
+  const _CharacterCard({
+    required this.character,
+    required this.isSelected,
+    required this.isLandscape,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 400 + (index * 100)),
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 50 * (1 - value)),
-            child: child,
-          ),
-        );
-      },
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => GameScreen(character: character),
+    return AnimatedScale(
+      scale: isSelected ? 1.0 : 0.85,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutBack,
+      child: AnimatedOpacity(
+        opacity: isSelected ? 1.0 : 0.6,
+        duration: const Duration(milliseconds: 400),
+        child: GestureDetector(
+          onTap: isSelected ? onTap : null,
+          child: Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: 10, 
+              vertical: isLandscape ? 5 : 15
             ),
-          );
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: isSelected ? Colors.cyanAccent.withOpacity(0.5) : Colors.white10,
+                width: 2,
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Hero(
-                    tag: 'char_${character.folderName}',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          'assets/images/${character.run1Path}',
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/${character.run1JpgPath}',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(child: Icon(Icons.person, size: 50, color: Colors.grey));
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ),
+              boxShadow: [
+                if (isSelected)
+                  BoxShadow(
+                    color: Colors.cyanAccent.withOpacity(0.2),
+                    blurRadius: 30,
+                    offset: const Offset(0, 15),
                   ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  color: Colors.white.withOpacity(0.05),
+                  child: isLandscape ? _buildLandscapeCard() : _buildPortraitCard(),
                 ),
               ),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16.0),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF5F7FA),
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      character.name,
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2D3436),
-                      ),
-                    ),
-                    Text(
-                      character.age,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blueAccent,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPortraitCard() {
+    return Column(
+      children: [
+        const SizedBox(height: 30),
+        Expanded(child: _buildCharacterImage()),
+        const SizedBox(height: 20),
+        _buildCharacterInfo(),
+        const SizedBox(height: 30),
+        if (isSelected) _buildPlayButton(),
+        if (!isSelected) const SizedBox(height: 80),
+      ],
+    );
+  }
+
+  Widget _buildLandscapeCard() {
+    return Row(
+      children: [
+        const SizedBox(width: 30),
+        Expanded(child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: _buildCharacterImage(),
+        )),
+        Expanded(
+          flex: 1,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildCharacterInfo(),
+              const SizedBox(height: 15),
+              if (isSelected) _buildPlayButton(),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20),
+      ],
+    );
+  }
+
+  Widget _buildCharacterImage() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected ? Colors.cyanAccent : Colors.white24,
+          width: 3,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 15,
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/images/${character.run1Path}',
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/images/${character.run1JpgPath}',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.person, size: 80, color: Colors.white24);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCharacterInfo() {
+    return Column(
+      children: [
+        Text(
+          character.name,
+          style: GoogleFonts.outfit(
+            fontSize: isLandscape ? 28 : 32,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          character.age.toUpperCase(),
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.cyanAccent,
+            letterSpacing: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlayButton() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 30 : 50, 
+        vertical: isLandscape ? 12 : 18
+      ),
+      margin: EdgeInsets.only(bottom: isLandscape ? 0 : 20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.cyanAccent, Colors.blueAccent],
+        ),
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Text(
+        'PLAY',
+        style: GoogleFonts.outfit(
+          fontSize: isLandscape ? 16 : 20,
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+class _CircularGlow extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _CircularGlow({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color,
+            blurRadius: 100,
+            spreadRadius: 50,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PageIndicator extends StatelessWidget {
+  final int count;
+  final int current;
+  const _PageIndicator({required this.count, required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: current == index ? 24 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: current == index ? Colors.cyanAccent : Colors.white24,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _PremiumHeader extends StatelessWidget {
+  final bool isLandscape;
+  const _PremiumHeader({required this.isLandscape});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'LET\'S JUMP',
+          style: GoogleFonts.outfit(
+            fontSize: isLandscape ? 32 : 44,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: 1,
+          ),
+        ),
+        if (!isLandscape)
+          Text(
+            'SELECT YOUR HERO',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white54,
+              letterSpacing: 3,
+            ),
+          ),
+      ],
     );
   }
 }
