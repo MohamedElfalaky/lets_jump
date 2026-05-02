@@ -67,7 +67,7 @@ class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame
 
   @override
   void render(Canvas canvas) {
-    final bodyColor = Colors.cyanAccent;
+    final bodyColor = character.color;
     final sizeX = size.x;
     final sizeY = size.y;
 
@@ -134,18 +134,27 @@ class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame
     
     canvas.saveLayer(headRect, filterPaint);
     
-    // Calculate scaling to FULLY FILL the circular head (BoxFit.cover)
-    final spriteSize = animation?.frames.first.sprite.srcSize ?? Vector2(1, 1);
-    final scale = max(headRect.width / spriteSize.x, headRect.height / spriteSize.y);
+    // Get the current sprite safely
+    final sprite = animationTicker?.getSprite();
+    if (sprite == null) {
+      canvas.restore();
+      canvas.restore();
+      return;
+    }
+    final srcSize = sprite.srcSize;
     
-    canvas.translate(
-      headCenter.dx - (spriteSize.x * scale / 2),
-      headCenter.dy - (spriteSize.y * scale / 2),
+    // Calculate the destination rect to "Cover" the head circle
+    final scale = max(headRect.width / srcSize.x, headRect.height / srcSize.y);
+    final destSize = srcSize * scale;
+    final destRect = Rect.fromCenter(
+      center: headCenter,
+      width: destSize.x,
+      height: destSize.y,
     );
-    canvas.scale(scale);
     
-    // Render the sprite within the head circle
-    super.render(canvas); 
+    // Draw the head image directly
+    sprite.renderRect(canvas, destRect);
+    
     canvas.restore();
     canvas.restore();
 

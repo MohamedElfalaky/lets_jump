@@ -142,14 +142,14 @@ class _CharacterCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
                 color: isSelected
-                    ? Colors.cyanAccent.withOpacity(0.5)
+                    ? character.color.withOpacity(0.5)
                     : Colors.white10,
                 width: 2,
               ),
               boxShadow: [
                 if (isSelected)
                   BoxShadow(
-                    color: Colors.cyanAccent.withOpacity(0.2),
+                    color: character.color.withOpacity(0.2),
                     blurRadius: 30,
                     offset: const Offset(0, 15),
                   ),
@@ -266,7 +266,7 @@ class _CharacterCard extends StatelessWidget {
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.cyanAccent,
+            color: character.color,
             letterSpacing: 2,
           ),
         ),
@@ -282,17 +282,25 @@ class _CharacterCard extends StatelessWidget {
       ),
       margin: EdgeInsets.only(bottom: isLandscape ? 0 : 20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.cyanAccent, Colors.blueAccent],
+        gradient: LinearGradient(
+          colors: [character.color, character.color.withOpacity(0.8)],
         ),
         borderRadius: BorderRadius.circular(50),
+        boxShadow: [
+          if (isSelected)
+            BoxShadow(
+              color: character.color.withOpacity(0.4),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+        ],
       ),
       child: Text(
         'PLAY',
         style: GoogleFonts.outfit(
           fontSize: isLandscape ? 16 : 20,
           fontWeight: FontWeight.w900,
-          color: Colors.black,
+          color: character.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
         ),
       ),
     );
