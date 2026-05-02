@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 import 'package:lets_jump/game/lets_jump_game.dart';
 import 'package:lets_jump/game/obstacle.dart';
 import 'package:lets_jump/game/jump_particles.dart';
 import 'package:lets_jump/models/character.dart';
 import 'package:lets_jump/services/audio_service.dart';
 
-class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, CollisionCallbacks {
+class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame>, CollisionCallbacks {
   final Character character;
   
   Player({required this.character}) : super(size: Vector2(100, 100), anchor: Anchor.bottomCenter);
@@ -27,9 +28,9 @@ class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, Col
     // Helper to try loading png then jpg
     Future<Sprite> loadBestSprite(String pngPath, String jpgPath) async {
       try {
-        return await gameRef.loadSprite(pngPath);
+        return await game.loadSprite(pngPath);
       } catch (e) {
-        return await gameRef.loadSprite(jpgPath);
+        return await game.loadSprite(jpgPath);
       }
     }
 
@@ -52,7 +53,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, Col
     animation = runningAnimation;
 
     // Position player
-    position = Vector2(gameRef.size.x * 0.15, gameRef.size.y * groundLevel);
+    position = Vector2(game.size.x * 0.15, game.size.y * groundLevel);
 
     // Add collision box
     add(RectangleHitbox(
@@ -100,8 +101,8 @@ class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, Col
       velocityY += gravity * dt;
       position.y += velocityY * dt;
 
-      if (position.y >= gameRef.size.y * groundLevel) {
-        position.y = gameRef.size.y * groundLevel;
+      if (position.y >= game.size.y * groundLevel) {
+        position.y = game.size.y * groundLevel;
         velocityY = 0;
         isGrounded = true;
         animation = runningAnimation;
@@ -116,7 +117,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, Col
       animation = jumpingAnimation;
       
       // Add particle effect
-      gameRef.add(JumpParticles(position: position.clone()));
+      game.add(JumpParticles(position: position.clone()));
 
       // Play jump sound
       AudioService.playJump();
@@ -124,7 +125,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, Col
   }
 
   void reset() {
-    position.y = gameRef.size.y * groundLevel;
+    position.y = game.size.y * groundLevel;
     velocityY = 0;
     isGrounded = true;
     animation = runningAnimation;
@@ -133,7 +134,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, Col
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     if (other is Obstacle) {
-      gameRef.gameOver();
+      game.gameOver();
     }
     super.onCollision(intersectionPoints, other);
   }

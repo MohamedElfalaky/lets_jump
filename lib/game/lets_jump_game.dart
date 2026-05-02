@@ -8,9 +8,11 @@ import 'package:lets_jump/game/parallax_background.dart';
 import 'package:lets_jump/game/speed_up_indicator.dart';
 import 'package:lets_jump/game/game_hud.dart';
 import 'package:lets_jump/models/character.dart';
+import 'package:lets_jump/services/audio_service.dart';
 import 'package:lets_jump/services/score_service.dart';
 
-class LetsJumpGame extends FlameGame with TapDetector, HasCollisionDetection {
+class LetsJumpGame extends FlameGame 
+    with HasCollisionDetection, TapCallbacks {
   final Character character;
   
   LetsJumpGame({required this.character});
@@ -68,7 +70,7 @@ class LetsJumpGame extends FlameGame with TapDetector, HasCollisionDetection {
   }
 
   @override
-  void onTap() {
+  void onTapDown(TapDownEvent event) {
     if (isGameOver) return;
     player.jump();
   }

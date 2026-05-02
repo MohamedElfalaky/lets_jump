@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:lets_jump/game/lets_jump_game.dart';
 
-class GameHud extends PositionComponent with HasGameRef<LetsJumpGame> {
+class GameHud extends PositionComponent with HasGameReference<LetsJumpGame> {
   late TextComponent scoreText;
   late TextComponent speedText;
 
@@ -42,7 +42,7 @@ class GameHud extends PositionComponent with HasGameRef<LetsJumpGame> {
   @override
   void update(double dt) {
     super.update(dt);
-    scoreText.text = 'SCORE: ${gameRef.score.toInt()}';
-    speedText.text = 'SPEED: ${(gameRef.gameSpeed / 10).toInt()}';
+    scoreText.text = 'SCORE: ${game.score.toInt()}';
+    speedText.text = 'SPEED: ${(game.gameSpeed / 10).toInt()}';
   }
 }

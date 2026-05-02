@@ -6,22 +6,21 @@ import 'package:lets_jump/game/lets_jump_game.dart';
 class ParallaxBackground extends ParallaxComponent<LetsJumpGame> {
   @override
   FutureOr<void> onLoad() async {
-    parallax = await gameRef.loadParallax(
+    parallax = await game.loadParallax(
       [
         ParallaxImageData('background/sky.png'),
         ParallaxImageData('background/clouds.png'),
         ParallaxImageData('background/ground.png'),
       ],
-      baseVelocity: Vector2(50, 0),
-      velocityMultiplierDelta: Vector2(1.5, 0),
+      baseVelocity: Vector2(game.gameSpeed / 10, 0),
+      velocityMultiplierDelta: Vector2(1.2, 1.0),
     );
-    return super.onLoad();
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Link parallax speed to game speed
-    parallax?.baseVelocity = Vector2(gameRef.gameSpeed / 5, 0);
+    // Update parallax speed based on current game speed
+    parallax?.baseVelocity = Vector2(game.gameSpeed / 10, 0);
   }
 }

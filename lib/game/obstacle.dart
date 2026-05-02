@@ -1,41 +1,23 @@
-import 'dart:async';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:lets_jump/game/lets_jump_game.dart';
 
 enum ObstacleType { small, tall, wide }
 
-class Obstacle extends SpriteComponent with HasGameRef<LetsJumpGame> {
+class Obstacle extends SpriteComponent with HasGameReference<LetsJumpGame>, CollisionCallbacks {
   final ObstacleType type;
 
-  Obstacle({required this.type}) : super(anchor: Anchor.bottomCenter);
+  Obstacle({required this.type}) : super(size: Vector2(60, 60), anchor: Anchor.bottomCenter);
 
   @override
-  FutureOr<void> onLoad() async {
-    String spritePath;
-    
-    switch (type) {
-      case ObstacleType.small:
-        size = Vector2(60, 60);
-        spritePath = 'obstacles/block.png';
-        break;
-      case ObstacleType.tall:
-        size = Vector2(60, 100);
-        spritePath = 'obstacles/tall_block.png'; // User can add this
-        break;
-      case ObstacleType.wide:
-        size = Vector2(120, 60);
-        spritePath = 'obstacles/wide_block.png'; // User can add this
-        break;
+  Future<void> onLoad() async {
+    try {
+      final spritePath = 'obstacles/${type.name}.png';
+      sprite = await game.loadSprite(spritePath);
+    } catch (e) {
+      sprite = await game.loadSprite('obstacles/block.png');
     }
 
-    // Fallback to default block if specific one doesn't exist
-    try {
-      sprite = await gameRef.loadSprite(spritePath);
-    } catch (e) {
-      sprite = await gameRef.loadSprite('obstacles/block.png');
-    }
-    
     add(RectangleHitbox());
     return super.onLoad();
   }
@@ -43,9 +25,9 @@ class Obstacle extends SpriteComponent with HasGameRef<LetsJumpGame> {
   @override
   void update(double dt) {
     super.update(dt);
-    position.x -= gameRef.gameSpeed * dt;
+    position.x -= game.gameSpeed * dt;
 
-    if (position.x + size.x < 0) {
+    if (position.x < -size.x) {
       removeFromParent();
     }
   }
