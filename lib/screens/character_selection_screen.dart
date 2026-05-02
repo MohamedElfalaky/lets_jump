@@ -228,18 +228,24 @@ class _CharacterCard extends StatelessWidget {
         ],
         shape: BoxShape.circle,
       ),
-      child: Image.asset(
-        'assets/images/${character.run1Path}',
+      child: FittedBox(
         fit: BoxFit.contain, // FULLY EXPAND to fill the circle
-        errorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            'assets/images/${character.run1JpgPath}',
-            fit: BoxFit.cover, // FULLY EXPAND to fill the circle
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.person, size: 80, color: Colors.white24);
-            },
-          );
-        },
+        child: Image.asset(
+          'assets/images/${character.run1Path}',
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/images/${character.run1JpgPath}',
+              fit: BoxFit.cover, // FULLY EXPAND to fill the circle
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.person,
+                  size: 80,
+                  color: Colors.white24,
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
