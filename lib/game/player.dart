@@ -1,0 +1,140 @@
+import 'dart:async';
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
+import 'package:lets_jump/game/lets_jump_game.dart';
+import 'package:lets_jump/game/obstacle.dart';
+import 'package:lets_jump/game/jump_particles.dart';
+import 'package:lets_jump/models/character.dart';
+import 'package:lets_jump/services/audio_service.dart';
+
+class Player extends SpriteAnimationComponent with HasGameRef<LetsJumpGame>, CollisionCallbacks {
+  final Character character;
+  
+  Player({required this.character}) : super(size: Vector2(100, 100), anchor: Anchor.bottomCenter);
+
+  static const double gravity = 1500;
+  static const double jumpForce = -600;
+  static const double groundLevel = 0.9; // 90% of height
+
+  double velocityY = 0;
+  bool isGrounded = true;
+
+  late SpriteAnimation runningAnimation;
+  late SpriteAnimation jumpingAnimation;
+
+  @override
+  FutureOr<void> onLoad() async {
+    // Helper to try loading png then jpg
+    Future<Sprite> loadBestSprite(String pngPath, String jpgPath) async {
+      try {
+        return await gameRef.loadSprite(pngPath);
+      } catch (e) {
+        return await gameRef.loadSprite(jpgPath);
+      }
+    }
+
+    // Load running animation
+    final sprite1 = await loadBestSprite(character.run1Path, character.run1JpgPath);
+    final sprite2 = await loadBestSprite(character.run2Path, character.run2JpgPath);
+    
+    runningAnimation = SpriteAnimation.spriteList(
+      [sprite1, sprite2],
+      stepTime: 0.15,
+    );
+
+    // Load jumping animation (single frame)
+    final jumpSprite = await loadBestSprite(character.jumpPath, character.jumpJpgPath);
+    jumpingAnimation = SpriteAnimation.spriteList(
+      [jumpSprite],
+      stepTime: 1,
+    );
+
+    animation = runningAnimation;
+
+    // Position player
+    position = Vector2(gameRef.size.x * 0.15, gameRef.size.y * groundLevel);
+
+    // Add collision box
+    add(RectangleHitbox(
+      size: Vector2(size.x * 0.6, size.y * 0.8),
+      position: Vector2(size.x * 0.2, size.y * 0.1),
+    ));
+
+    return super.onLoad();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    // Create a circular clip for the photo
+    final radius = size.x / 2;
+    final center = size / 2;
+    final path = Path()..addOval(Rect.fromCircle(center: center.toOffset(), radius: radius));
+    
+    canvas.save();
+    canvas.clipPath(path);
+    
+    // Draw the actual character sprite/photo
+    super.render(canvas);
+    
+    canvas.restore();
+
+    // Add a nice white border around the circle
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+    canvas.drawCircle(center.toOffset(), radius, paint);
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    position = Vector2(size.x * 0.15, size.y * groundLevel);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    if (!isGrounded) {
+      velocityY += gravity * dt;
+      position.y += velocityY * dt;
+
+      if (position.y >= gameRef.size.y * groundLevel) {
+        position.y = gameRef.size.y * groundLevel;
+        velocityY = 0;
+        isGrounded = true;
+        animation = runningAnimation;
+      }
+    }
+  }
+
+  void jump() {
+    if (isGrounded) {
+      velocityY = jumpForce;
+      isGrounded = false;
+      animation = jumpingAnimation;
+      
+      // Add particle effect
+      gameRef.add(JumpParticles(position: position.clone()));
+
+      // Play jump sound
+      AudioService.playJump();
+    }
+  }
+
+  void reset() {
+    position.y = gameRef.size.y * groundLevel;
+    velocityY = 0;
+    isGrounded = true;
+    animation = runningAnimation;
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    if (other is Obstacle) {
+      gameRef.gameOver();
+    }
+    super.onCollision(intersectionPoints, other);
+  }
+}
