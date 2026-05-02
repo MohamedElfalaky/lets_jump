@@ -8,7 +8,8 @@ class CharacterSelectionScreen extends StatefulWidget {
   const CharacterSelectionScreen({super.key});
 
   @override
-  State<CharacterSelectionScreen> createState() => _CharacterSelectionScreenState();
+  State<CharacterSelectionScreen> createState() =>
+      _CharacterSelectionScreenState();
 }
 
 class _CharacterSelectionScreenState extends State<CharacterSelectionScreen> {
@@ -29,7 +30,8 @@ class _CharacterSelectionScreenState extends State<CharacterSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       body: Container(
@@ -46,14 +48,20 @@ class _CharacterSelectionScreenState extends State<CharacterSelectionScreen> {
             Positioned(
               top: -100,
               right: -100,
-              child: _CircularGlow(color: Colors.cyanAccent.withOpacity(0.1), size: 400),
+              child: _CircularGlow(
+                color: Colors.cyanAccent.withOpacity(0.1),
+                size: 400,
+              ),
             ),
             Positioned(
               bottom: -150,
               left: -150,
-              child: _CircularGlow(color: Colors.blueAccent.withOpacity(0.15), size: 500),
+              child: _CircularGlow(
+                color: Colors.blueAccent.withOpacity(0.15),
+                size: 500,
+              ),
             ),
-            
+
             SafeArea(
               child: Column(
                 children: [
@@ -63,7 +71,8 @@ class _CharacterSelectionScreenState extends State<CharacterSelectionScreen> {
                   Expanded(
                     child: PageView.builder(
                       controller: _pageController,
-                      onPageChanged: (index) => setState(() => _currentPage = index),
+                      onPageChanged: (index) =>
+                          setState(() => _currentPage = index),
                       itemCount: Character.characters.length,
                       itemBuilder: (context, index) {
                         final character = Character.characters[index];
@@ -95,9 +104,7 @@ class _CharacterSelectionScreenState extends State<CharacterSelectionScreen> {
   void _startGame(Character character) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => GameScreen(character: character),
-      ),
+      MaterialPageRoute(builder: (context) => GameScreen(character: character)),
     );
   }
 }
@@ -128,13 +135,15 @@ class _CharacterCard extends StatelessWidget {
           onTap: isSelected ? onTap : null,
           child: Container(
             margin: EdgeInsets.symmetric(
-              horizontal: 10, 
-              vertical: isLandscape ? 5 : 15
+              horizontal: 10,
+              vertical: isLandscape ? 5 : 15,
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
-                color: isSelected ? Colors.cyanAccent.withOpacity(0.5) : Colors.white10,
+                color: isSelected
+                    ? Colors.cyanAccent.withOpacity(0.5)
+                    : Colors.white10,
                 width: 2,
               ),
               boxShadow: [
@@ -152,7 +161,9 @@ class _CharacterCard extends StatelessWidget {
                 filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
                   color: Colors.white.withOpacity(0.05),
-                  child: isLandscape ? _buildLandscapeCard() : _buildPortraitCard(),
+                  child: isLandscape
+                      ? _buildLandscapeCard()
+                      : _buildPortraitCard(),
                 ),
               ),
             ),
@@ -180,10 +191,12 @@ class _CharacterCard extends StatelessWidget {
     return Row(
       children: [
         const SizedBox(width: 30),
-        Expanded(child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: _buildCharacterImage(),
-        )),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: _buildCharacterImage(),
+          ),
+        ),
         Expanded(
           flex: 1,
           child: Column(
@@ -209,26 +222,22 @@ class _CharacterCard extends StatelessWidget {
           width: 3,
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 15,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 15),
         ],
       ),
-      child: ClipOval(
-        child: Image.asset(
-          'assets/images/${character.run1Path}',
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset(
-              'assets/images/${character.run1JpgPath}',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.person, size: 80, color: Colors.white24);
-              },
-            );
-          },
-        ),
+      child: Image.asset(
+        'assets/images/${character.run1Path}',
+
+        fit: BoxFit.fill,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(
+            'assets/images/${character.run1JpgPath}',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(Icons.person, size: 80, color: Colors.white24);
+            },
+          );
+        },
       ),
     );
   }
@@ -260,8 +269,8 @@ class _CharacterCard extends StatelessWidget {
   Widget _buildPlayButton() {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isLandscape ? 30 : 50, 
-        vertical: isLandscape ? 12 : 18
+        horizontal: isLandscape ? 30 : 50,
+        vertical: isLandscape ? 12 : 18,
       ),
       margin: EdgeInsets.only(bottom: isLandscape ? 0 : 20),
       decoration: BoxDecoration(
@@ -294,13 +303,7 @@ class _CircularGlow extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color,
-            blurRadius: 100,
-            spreadRadius: 50,
-          ),
-        ],
+        boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 50)],
       ),
     );
   }

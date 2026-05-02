@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:lets_jump/game/beautiful_background.dart';
 import 'package:lets_jump/game/player.dart';
 import 'package:lets_jump/game/obstacle_manager.dart';
 import 'package:lets_jump/game/parallax_background.dart';
@@ -19,7 +20,7 @@ class LetsJumpGame extends FlameGame
 
   late Player player;
   late ObstacleManager obstacleManager;
-  late ParallaxBackground background;
+  late ParallaxBackground ground;
 
   double score = 0;
   double gameSpeed = 300;
@@ -32,11 +33,14 @@ class LetsJumpGame extends FlameGame
     await AudioService.init();
     AudioService.startBgm();
 
-    // Add Parallax Background
-    background = ParallaxBackground();
-    add(background);
+    // 1. Add Procedural Beautiful Background (Sky/Stars)
+    add(BeautifulBackground());
 
-    // Add Player
+    // 2. Add Ground Parallax
+    ground = ParallaxBackground();
+    add(ground);
+
+    // 3. Add Player
     player = Player(character: character);
     add(player);
 

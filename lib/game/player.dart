@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ import 'package:lets_jump/services/audio_service.dart';
 class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame>, CollisionCallbacks {
   final Character character;
   
-  Player({required this.character}) : super(size: Vector2(100, 100), anchor: Anchor.bottomCenter);
+  Player({required this.character}) : super(size: Vector2(80, 120), anchor: Anchor.bottomCenter);
 
   static const double gravity = 1500;
   static const double jumpForce = -600;
@@ -66,34 +67,83 @@ class Player extends SpriteAnimationComponent with HasGameReference<LetsJumpGame
 
   @override
   void render(Canvas canvas) {
-    // Create a circular clip for the photo
-    final radius = size.x / 2;
-    final center = size / 2;
-    final path = Path()..addOval(Rect.fromCircle(center: center.toOffset(), radius: radius));
+    final bodyColor = Colors.cyanAccent;
+    final sizeX = size.x;
+    final sizeY = size.y;
+
+    // 1. Draw Cartoon Body (Torso)
+    final torsoPaint = Paint()..color = bodyColor;
+    final torsoRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(sizeX * 0.3, sizeY * 0.4, sizeX * 0.4, sizeY * 0.4),
+      const Radius.circular(10),
+    );
+    canvas.drawRRect(torsoRect, torsoPaint);
+
+    // 2. Draw Animated Legs
+    final legPaint = Paint()
+      ..color = bodyColor.withOpacity(0.8)
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round;
+
+    final walkCycle = sin(game.score * 10); // Simple animation based on score
+    
+    // Left Leg
+    canvas.drawLine(
+      Offset(sizeX * 0.4, sizeY * 0.8),
+      Offset(sizeX * (0.3 + (walkCycle * 0.1)), sizeY * 0.95),
+      legPaint,
+    );
+    // Right Leg
+    canvas.drawLine(
+      Offset(sizeX * 0.6, sizeY * 0.8),
+      Offset(sizeX * (0.7 - (walkCycle * 0.1)), sizeY * 0.95),
+      legPaint,
+    );
+
+    // 3. Draw Arms
+    canvas.drawLine(
+      Offset(sizeX * 0.3, sizeY * 0.5),
+      Offset(sizeX * (0.2 - (walkCycle * 0.05)), sizeY * 0.65),
+      legPaint,
+    );
+    canvas.drawLine(
+      Offset(sizeX * 0.7, sizeY * 0.5),
+      Offset(sizeX * (0.8 + (walkCycle * 0.05)), sizeY * 0.65),
+      legPaint,
+    );
+
+    // 4. Draw the PHOTO HEAD (The child's face) - BIG HEAD STYLE
+    final headRadius = sizeX * 0.45; // Much larger head
+    final headCenter = Offset(sizeX * 0.5, sizeY * 0.15); // Move higher
+    final headPath = Path()..addOval(Rect.fromCircle(center: headCenter, radius: headRadius));
     
     canvas.save();
-    canvas.clipPath(path);
+    canvas.clipPath(headPath);
     
-    // Draw with a cartoon-like filter (vibrancy boost)
+    // Draw the actual character photo as the head
+    final headRect = Rect.fromCircle(center: headCenter, radius: headRadius);
+    
+    // Apply the pop filter
     final filterPaint = Paint()
       ..colorFilter = const ColorFilter.matrix([
-        1.2, 0, 0, 0, 5,   // Red
-        0, 1.2, 0, 0, 5,   // Green
-        0, 0, 1.2, 0, 5,   // Blue
-        0, 0, 0, 1.0, 0,   // Alpha
+        1.2, 0, 0, 0, 5,
+        0, 1.2, 0, 0, 5,
+        0, 0, 1.2, 0, 5,
+        0, 0, 0, 1.0, 0,
       ]);
     
-    canvas.saveLayer(Rect.fromLTWH(0, 0, size.x, size.y), filterPaint);
-    super.render(canvas);
-    canvas.restore(); // Restore layer
-    canvas.restore(); // Restore clip
+    canvas.saveLayer(headRect, filterPaint);
+    // Render the sprite within the head circle
+    super.render(canvas); 
+    canvas.restore();
+    canvas.restore();
 
-    // Add a nice white border around the circle
-    final paint = Paint()
+    // 5. Add a nice glowing border to the head
+    final headBorder = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
-    canvas.drawCircle(center.toOffset(), radius, paint);
+    canvas.drawCircle(headCenter, headRadius, headBorder);
   }
 
   @override
